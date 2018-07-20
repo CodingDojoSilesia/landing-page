@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Coding Dojo Silesia</title>
+        <script src="./d3.js"></script>
+        <script src="./js.js"></script>
+        <style>
+            body { font-family: Monospace; color: #333; }
+            .red { color: #D82C31; }
+            div#main { text-align: center; width: 100%; }
+            h1#timer { font-size: 72pt; }
+            .value-time {display: inline-block; width: 150px; }
+        </style>
+    </head>
+    <body onload="showTime()">
+        <div id="main">
+            <img src="./logo.png" />
+            <h1 id="timer">
+                <span class='value-time' id='hour'>--</span>
+                <span class='delimeter-time'>:</span>
+                <span class='value-time' id='minute'>--</span>
+                <span class='delimeter-time'>:</span>
+                <span class='value-time' id='second'>--</span>
+            </h1>
+        </div>
+    </body>
+</html>
