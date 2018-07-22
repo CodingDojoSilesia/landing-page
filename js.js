@@ -28,7 +28,7 @@ function makeAnimation () {
 
 function computePacmanCords () {
     var percent = (getNowTimeInSeconds() - $params.start) / $params.diff;
-    percent = Math.min(percent, 1.0);
+    percent = Math.max(Math.min(percent, 1.0), 0.0);
     var halfHeight = $svg.height / 2;
     var road = halfHeight + ($svg.width - $svg.height) * percent;
     var doublePI = 2 * Math.PI;
