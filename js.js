@@ -1,5 +1,5 @@
 var $params = {};
-var $svg = {width: 800, height: 100};
+var $svg = {width: 800, height: 100, pacmanMouthSpeed: 50};
 var $red = '#D82C31';
 
 function init () {
@@ -24,15 +24,30 @@ function makeAnimation () {
         .attr('d', computePacmanCords())
         .attr('fill', $red)
     );
+
+    pacmanMouthLoop();
+
+}
+
+function pacmanMouthLoop () {
+    (
+        $svg.pacman
+        .transition()
+        .ease(d3.easeLinear)
+        .duration(1000)
+        .attr('d', computePacmanCords())
+        .on('end', pacmanMouthLoop)
+    );
 }
 
 function computePacmanCords () {
-    var percent = (getNowTimeInSeconds() - $params.start) / $params.diff;
+    var time = getNowTimeInSeconds();
+    var percent = (time - $params.start) / $params.diff;
     percent = Math.max(Math.min(percent, 1.0), 0.0);
     var halfHeight = $svg.height / 2;
     var road = halfHeight + ($svg.width - $svg.height) * percent;
     var doublePI = 2 * Math.PI;
-    var mountSize = 0.08 * (Math.sin(doublePI * percent * 5) + 1) + 0.01;
+    var mountSize = 0.125 * (Math.sin(time * $svg.pacmanMouthSpeed) + 1) + 0.01;
     var halfMountSize = mountSize / 2;
 
     var firstAngle = doublePI * (1.0 - halfMountSize);
@@ -89,14 +104,6 @@ function showTime () {
     getEl('second').innerHTML = lpad(seconds);
 
     var miliseconds = 1000 - (new Date()).getMilliseconds();
-
-    (
-        $svg.pacman
-        .transition() // slow :/
-        .ease(d3.easeLinear)
-        .duration(miliseconds)
-        .attr('d', computePacmanCords())
-    );
 
     // avoid race condition with timeout
     setTimeout(showTime, miliseconds + 30);
