@@ -1,13 +1,13 @@
 var $params = {};
-var $svg = {width: 800, height: 100, pacmanMouthSpeed: 50};
+var $svg = {width: 800, height: 100, pacmanMouthSpeed: 50, dotsCount: 10};
 var $red = '#D82C31';
+var $black = '#333';
 
 function init () {
     parseQs();
     $params.start = parseTimeInSeconds($params.start);
     $params.end = parseTimeInSeconds($params.end);
     $params.diff = $params.end - $params.start;
-    $params.diffPercent = $params.diff / $params.end;
     
     makeAnimation();
     showTime();
@@ -19,6 +19,13 @@ function makeAnimation () {
         .attr('width', $svg.width)
         .attr('height', $svg.height)
     );
+
+    makeDots();
+    makePacman();
+
+}
+
+function makePacman () {
     $svg.pacman = (
         $svg.main.append('path')
         .attr('d', computePacmanCords())
@@ -26,8 +33,46 @@ function makeAnimation () {
     );
 
     pacmanMouthLoop();
-
 }
+
+function makeDots () {
+    var range = [];
+    for (var i = 1; i < $svg.dotsCount; i++) {
+        range.push(i);
+    }
+
+    $svg.dots = range.map(makeDot);
+
+    removeDotsLoop();
+}
+
+function makeDot(i) {
+    var road = i * $svg.width / $svg.dotsCount;
+    return (
+        $svg.main.append('circle')
+        .attr('cx', road)
+        .attr('cy', $svg.height / 2)
+        .attr('r', $svg.height / 10)
+        .attr('data-i', i)
+        .attr('fill', $black)
+    );
+}
+
+function removeDotsLoop () {
+    var time = getNowTimeInSeconds();
+    var percent = (time - $params.start) / $params.diff;
+    $svg.dots = $svg.dots.filter(dot => {
+        var i = dot.attr('data-i');
+        if (percent > i / $svg.dotsCount) {
+            dot.remove();
+            return false;
+        }
+        return true;
+    });
+
+    setTimeout(removeDotsLoop, 1000);
+}
+
 
 function pacmanMouthLoop () {
     (
