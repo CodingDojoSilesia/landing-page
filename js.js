@@ -43,7 +43,7 @@ function makePacman () {
 
 function makeDots () {
     var range = [];
-    for (var i = 0; i < $svg.dotsCount; i++) {
+    for (var i = 0; i <= $svg.dotsCount; i++) {
         range.push(i);
     }
 
@@ -72,7 +72,6 @@ function removeDotsLoop () {
         var i = dot.attr('data-i');
         var dotPercent = i / $svg.dotsCount;
         if (percent > dotPercent) {
-            console.log(i, percent, dotPercent);
             (
                 dot.transition()
                 .duration(2000 + 200 * removeCount)
