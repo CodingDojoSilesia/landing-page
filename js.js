@@ -5,8 +5,14 @@ var $black = '#333';
 
 function init () {
     parseQs();
-    $params.start = parseTimeInSeconds($params.start);
-    $params.end = parseTimeInSeconds($params.end);
+    $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds();
+    $params.end = parseTimeInSeconds($params.end || '') || ($params.start + 3600);
+
+    if ($params.start > $params.end) {
+        var dd = $params.start;
+        $params.start = $params.end;
+        $params.end = dd;
+    }
     $params.diff = $params.end - $params.start;
     
     makeAnimation();
@@ -164,6 +170,9 @@ function parseTimeInSeconds(value) {
         .split(':', 3)
         .map(x => parseInt(x))
     );
+    hours = Math.max(Math.min(hours || 0, 24), 0)
+    minutes = Math.max(Math.min(minutes || 0, 60), 0)
+    seconds = Math.max(Math.min(seconds || 0, 60), 0)
     return hours * 3600 + minutes * 60 + seconds;
 }
 
