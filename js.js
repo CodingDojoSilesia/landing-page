@@ -43,7 +43,7 @@ function makePacman () {
 
 function makeDots () {
     var range = [];
-    for (var i = 1; i < $svg.dotsCount; i++) {
+    for (var i = 0; i < $svg.dotsCount; i++) {
         range.push(i);
     }
 
@@ -53,24 +53,34 @@ function makeDots () {
 }
 
 function makeDot(i) {
-    var road = i * $svg.width / $svg.dotsCount;
     return (
         $svg.main.append('circle')
-        .attr('cx', road)
+        .attr('cx', getRoadByPercent(i / $svg.dotsCount))
         .attr('cy', $svg.height / 2)
         .attr('r', $svg.height / 10)
         .attr('data-i', i)
         .attr('fill', $black)
+        .attr('fill-opacity', 1.0)
     );
 }
 
 function removeDotsLoop () {
     var time = getNowTimeInSeconds();
     var percent = (time - $params.start) / $params.diff;
+    var removeCount = 0;
     $svg.dots = $svg.dots.filter(dot => {
         var i = dot.attr('data-i');
-        if (percent > i / $svg.dotsCount) {
-            dot.remove();
+        var dotPercent = i / $svg.dotsCount;
+        if (percent > dotPercent) {
+            console.log(i, percent, dotPercent);
+            (
+                dot.transition()
+                .duration(2000 + 200 * removeCount)
+                .attr('fill-opacity', 0)
+                .attr('r', $svg.height / 8)
+                .remove()
+            );
+            removeCount += 1;
             return false;
         }
         return true;
@@ -96,7 +106,7 @@ function computePacmanCords () {
     var percent = (time - $params.start) / $params.diff;
     percent = Math.max(Math.min(percent, 1.0), 0.0);
     var halfHeight = $svg.height / 2;
-    var road = halfHeight + ($svg.width - $svg.height) * percent;
+    var road = getRoadByPercent(percent);
     var doublePI = 2 * Math.PI;
     var mountSize = 0.125 * (Math.sin(time * $svg.pacmanMouthSpeed) + 1) + 0.01;
     var halfMountSize = mountSize / 2;
@@ -117,6 +127,10 @@ function computePacmanCords () {
     ];
 
     return d.join(' ');
+}
+
+function getRoadByPercent (percent) {
+    return $svg.height / 2 + ($svg.width - $svg.height) * percent;
 }
 
 function parseQs () {
