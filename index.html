@@ -5,16 +5,17 @@
         <script src="./d3.js"></script>
         <script src="./js.js"></script>
         <style>
-            body { font-family: Monospace; color: #333; }
-            .red { color: #D82C31; }
+            body { font-family: Sans-Serif, Monospace; color: #333; }
             div#main { text-align: center; width: 100%; }
-            h1#timer { font-size: 72pt; }
+            h1#timer { font-size: 72pt; margin: 0; }
             .value-time {display: inline-block; width: 150px; }
         </style>
     </head>
     <body onload="init()">
         <div id="main">
             <img src="./logo.png" />
+            <br /><br />
+            <svg id="animation"></svg>
             <h1 id="timer">
                 <span class='value-time' id='hour'>--</span>
                 <span class='delimeter-time'>:</span>
