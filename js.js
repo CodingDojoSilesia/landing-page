@@ -1,5 +1,5 @@
 var $params = {};
-var $svg = {width: 800, height: 100, pacmanMouthSpeed: 50, dotsCount: 10};
+var $svg = {width: 800, height: 100, pacmanMouthSpeed: 1, dotsCount: 10};
 var $red = '#D82C31';
 var $black = '#333';
 
@@ -48,7 +48,7 @@ function makeAnimation () {
 function makePacman () {
     $svg.pacman = (
         $svg.main.append('path')
-        .attr('d', computePacmanCords())
+        .attr('d', computePacmanCords(1.0))
         .attr('fill', $red)
     );
 
@@ -104,24 +104,30 @@ function removeDotsLoop () {
 
 
 function pacmanMouthLoop () {
+    var duration = 1000 / $svg.pacmanMouthSpeed;
+    var ease = d3.easeLinear;
     (
         $svg.pacman
         .transition()
-        .ease(d3.easeLinear)
-        .duration(1000)
-        .attr('d', computePacmanCords())
+            .ease(ease)
+            .duration(duration)
+            .attr('d', computePacmanCords(0.01))
+        .transition()
+            .ease(ease)
+            .duration(duration)
+            .attr('d', computePacmanCords(1.0))
         .on('end', pacmanMouthLoop)
     );
 }
 
-function computePacmanCords () {
+function computePacmanCords (mouthSizeRatio) {
     var time = getNowTimeInSeconds();
     var percent = (time - $params.start) / $params.diff;
     percent = Math.max(Math.min(percent, 1.0), 0.0);
     var halfHeight = $svg.height / 2;
     var road = getRoadByPercent(percent);
     var doublePI = 2 * Math.PI;
-    var mountSize = 0.125 * (Math.sin(time * $svg.pacmanMouthSpeed) + 1) + 0.01;
+    var mountSize = 0.125 * mouthSizeRatio;
     var halfMountSize = mountSize / 2;
 
     var firstAngle = doublePI * (1.0 - halfMountSize);
