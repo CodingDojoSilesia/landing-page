@@ -6,16 +6,33 @@
         <script src="./js.js"></script>
         <link rel="icon" href="./favicon.ico" type="image/x-icon" />
         <style>
-            body { font-family: Sans-Serif, Monospace; color: #333; }
-            div#main { text-align: center; width: 100%; }
-            h1#timer { font-size: 72pt; margin: 0; }
+            html, body { height: 100%; }
+            body { font-family: Sans-Serif, Monospace; color: #333; margin: 0; }
+            #main {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                align-content: space-around;
+                text-align: center;
+                width: 100%;
+                height: 1000px;
+            }
+            #logo {
+                flex: 1;
+                background-image: url("./logo.png");
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: contain;
+                width: 100%;
+            }
+            #timer { font-size: 72pt; margin: 0; }
             .value-time {display: inline-block; width: 150px; }
+            #text { font-size: 48pt; width: 100%; margin: 0; padding: 0; }
         </style>
     </head>
     <body onload="init()">
         <div id="main">
-            <img src="./logo.png" />
-            <br /><br />
+            <div id="logo"></div>
             <svg id="animation"></svg>
             <h1 id="timer">
                 <span class='value-time' id='hour'>--</span>
@@ -24,6 +41,7 @@
                 <span class='delimeter-time'>:</span>
                 <span class='value-time' id='second'>--</span>
             </h1>
+            <div id="text" oninput="onText" contenteditable="true"></div>
         </div>
     </body>
 </html>

@@ -5,8 +5,9 @@ var $black = '#333';
 
 function init () {
     parseQs();
-    $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds();
-    $params.end = parseTimeInSeconds($params.end || '') || ($params.start + 3600);
+    $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds(); // default = now
+    $params.time = (parseFloat($params.time || '') || 1) * 3600; // default = 1 hour
+    $params.end = parseTimeInSeconds($params.end || '') || ($params.start + $params.time);
 
     if ($params.start > $params.end) {
         var dd = $params.start;
@@ -15,8 +16,21 @@ function init () {
     }
     $params.diff = $params.end - $params.start;
     
+    initText();
     makeAnimation();
     showTime();
+}
+
+function initText() {
+    var el = getEl('text');
+    el.innerText = window.localStorage.text || '';
+    el.addEventListener('input', onText);
+}
+
+function onText (ev) {
+    var el = ev.target;
+    var text = el.innerText || '';
+    window.localStorage.text = text;
 }
 
 function makeAnimation () {
