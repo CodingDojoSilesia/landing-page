@@ -6,8 +6,8 @@
         <script src="./js.js"></script>
         <link rel="icon" href="./favicon.ico" type="image/x-icon" />
         <style>
-            html, body { height: 100%; }
-            body { font-family: Sans-Serif, Monospace; color: #333; margin: 0; }
+            html, body { height: 100%; margin: 0; padding: 0; }
+            body { font-family: Sans-Serif, Monospace; color: #333; }
             #main {
                 display: flex;
                 flex-direction: column;
@@ -15,7 +15,7 @@
                 align-content: space-around;
                 text-align: center;
                 width: 100%;
-                height: 1000px;
+                height: 100%;
             }
             #logo {
                 flex: 1;
@@ -24,10 +24,11 @@
                 background-repeat: no-repeat;
                 background-size: contain;
                 width: 100%;
+                margin-bottom: 10px;
             }
             #timer { font-size: 72pt; margin: 0; }
             .value-time {display: inline-block; width: 150px; }
-            #text { font-size: 48pt; width: 100%; margin: 0; padding: 0; }
+            #text { font-size: 48pt; width: 100%; }
         </style>
     </head>
     <body onload="init()">
