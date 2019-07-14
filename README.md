@@ -2,7 +2,7 @@
 
 ## howto run
 
-just run index.html in serwer/browser. Can works locally without server
+just run index.html in serwer/browser. It can works locally without server
 
 ## params on URL
 
@@ -14,4 +14,4 @@ Example: `domain.com?start=12:00&end=14:00`
 
 ## additional text field
 
-On the bottom of site is editable textfield - you can put everything - links, wifi password and other useful informations for your event.
+On the bottom of site there is an editable textfield - you can put everything - links, wifi password and other useful informations for your event.
