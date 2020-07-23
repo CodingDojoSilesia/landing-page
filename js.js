@@ -15,7 +15,7 @@ function init () {
         $params.end = dd;
     }
     $params.diff = $params.end - $params.start;
-    
+
     initText();
     makeAnimation();
     showTime();
@@ -27,25 +27,32 @@ function initText() {
     el.addEventListener('input', onText);
 }
 
-function onText (ev) {
+function onText(ev) {
     var el = ev.target;
     var text = el.innerText || '';
     window.localStorage.text = text;
 }
 
-function makeAnimation () {
+function makeAnimation() {
     $svg.main = (
         d3.select('svg#animation')
         .attr('width', $svg.width)
         .attr('height', $svg.height)
     );
 
-    makeDots();
-    makePacman();
-
+    makeBoard();
 }
 
-function makePacman () {
+
+function makeBoard() {
+    const board = Board();
+    return board;
+}
+
+function fillLastRow(board) {
+}
+
+function makePacman() {
     $svg.pacman = (
         $svg.main.append('path')
         .attr('d', computePacmanCords(1.0))
@@ -55,7 +62,7 @@ function makePacman () {
     pacmanMouthLoop();
 }
 
-function makeDots () {
+function makeDots() {
     var range = [];
     for (var i = 0; i <= $svg.dotsCount; i++) {
         range.push(i);
@@ -178,7 +185,7 @@ function showTime () {
         $params.diff
     );
 
-    var totalMinutes = Math.floor(totalSeconds / 60); 
+    var totalMinutes = Math.floor(totalSeconds / 60);
     var hours = Math.floor(totalMinutes / 60);
     var minutes = totalMinutes % 60;
     var seconds = totalSeconds % 60;
