@@ -5,8 +5,6 @@ class Puzzle {
         this.rotation = rotation;
         this.crop();
         this.floorSpace = this.array[3].indexOf('#');
-        // this.floorSize = this.array[3].indexOf('.', this.floorSpace);
-        // if (this.floorSize < 0) this.floorSize = 4;
     }
 
     crop() {
@@ -52,12 +50,14 @@ function makePuzzles(array, index) {
     const r270 = rotate90(r180);
 
     const origin = new Puzzle(array, index, 0);
-    const puzzles = [ // todo - only uniqes
-        new Puzzle(r90, index, 1),
-        new Puzzle(r180, index, 2),
-        new Puzzle(r270, index, 3),
-    ].filter(p => !p.isEquals(origin));
-    puzzles.push(origin);
+    const puzzle90 = new Puzzle(r90, index, 1);
+    const puzzle180 = new Puzzle(r180, index, 2);
+    const puzzle270 = new Puzzle(r270, index, 3);
+    const puzzles = [origin];
+
+    if (!origin.isEquals(puzzle90))     puzzles.push(puzzle90);
+    if (!origin.isEquals(puzzle180))    puzzles.push(puzzle180);
+    if (!puzzle90.isEquals(puzzle270))  puzzles.push(puzzle270);
 
     // puzzles.forEach(p => { console.log(p.array.join('\n'), '\n'); });
 
@@ -169,18 +169,38 @@ class Board {
             row: rowIndex,
             col: cellIndex,
         });
+
         const maxX = Math.min(cellIndex + 4, this.width) - cellIndex;
+        const index = rowIndex * 11 + cellIndex * 3;
+        const alfa = String.fromCharCode(index % 12 + 65);
         for(let x = 0; x < maxX; x++) {
             for(let y = 0; y < 4; y++) {
                 if (puzzle.array[y][x] != '.') {
-                    this.board[rowIndex - 3 + y][cellIndex + x] = '' + puzzle.index;
+                    this.board[rowIndex - 3 + y][cellIndex + x] = alfa;
                 }
             }
         }
+    }
+
+    toConsole() {
+        console.log(
+            this.board.map(
+                row => row
+                    .join('')
+                    .replace(/\w/g, w => {
+                        const d = w.charCodeAt() - 65;
+                        const fg = parseInt(d) + (d < 7 ? 31 : 91 - 7);
+                        const bg = parseInt(d) + (d < 7 ? 41 : 101 - 7);
+                        return `\x1b[${fg}m\x1b[${bg}m${w + w}\x1b[0m`;
+                    })
+                    .replace(/\./g, '..')
+            ).join('\n')
+
+        );
     }
 
 }
 
 const b = new Board();
 for(let i=0; i < 10; i++) b.fillLastRow();
-console.log(b.board.map(f => f.join('')).join('\n'));
+b.toConsole();
