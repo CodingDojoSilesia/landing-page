@@ -3,6 +3,7 @@
     <head>
         <title>Coding Dojo Silesia</title>
         <script src="./d3.js"></script>
+        <script src="./board.js"></script>
         <script src="./js.js"></script>
         <link rel="icon" href="./favicon.ico" type="image/x-icon" />
         <style>
@@ -10,11 +11,24 @@
             body { font-family: Sans-Serif, Monospace; color: #333; }
             #main {
                 display: flex;
+                flex-direction: row;
+                align-items: center;
+                align-content: space-around;
+                text-align: center;
+                width: 100vw;
+                height: 100vh;
+            }
+            #animation {
+                height: 100%;
+                width: 50%;
+            }
+            #right {
+                display: flex;
                 flex-direction: column;
                 align-items: center;
                 align-content: space-around;
                 text-align: center;
-                width: 100%;
+                width: 30%;
                 height: 100%;
             }
             #logo {
@@ -35,14 +49,16 @@
         <div id="main">
             <div id="logo"></div>
             <svg id="animation"></svg>
-            <h1 id="timer">
-                <span class='value-time' id='hour'>--</span>
-                <span class='delimeter-time'>:</span>
-                <span class='value-time' id='minute'>--</span>
-                <span class='delimeter-time'>:</span>
-                <span class='value-time' id='second'>--</span>
-            </h1>
-            <div id="text" oninput="onText" contenteditable="true"></div>
+            <div class="right">
+                <h1 id="timer">
+                    <span class='value-time' id='hour'>--</span>
+                    <span class='delimeter-time'>:</span>
+                    <span class='value-time' id='minute'>--</span>
+                    <span class='delimeter-time'>:</span>
+                    <span class='value-time' id='second'>--</span>
+                </h1>
+                <div id="text" oninput="onText" contenteditable="true"></div>
+            </div>
         </div>
     </body>
 </html>

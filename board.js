@@ -1,3 +1,4 @@
+const CELL_SIZE = 30;
 class Puzzle {
     constructor(array, index, rotation) {
         this.array = array;
@@ -5,6 +6,7 @@ class Puzzle {
         this.rotation = rotation;
         this.crop();
         this.floorSpace = this.array[3].indexOf('#');
+        this.cords = this.generateCords();
     }
 
     crop() {
@@ -41,6 +43,66 @@ class Puzzle {
 
     isEquals(otherPuzzle) {
         return this.array.every((col, index) => col == otherPuzzle.array[index]);
+    }
+
+    generateCords() {
+        const firstY = 3;
+        const firstX = this.array[firstY].indexOf('#');
+
+        const dir2cord = {
+            0: [+0.5, +0.0, 3], // →
+            1: [+0.0, -0.5, 0], // ↑
+            2: [-0.5, +0.0, 1], // ←
+            3: [-0.0, +0.5, 2], // ↓
+        }
+
+        let x = firstX, y = firstY, dir = 0, lastDir = 0;
+        const polygons = [];
+
+        function pushPolygon() {
+            let p;
+            const xx = Math.ceil(x);
+            const yy = Math.ceil(y);
+            const d = (xx - x > 0.1) | ((yy - y > 0.1) << 1);
+            switch(d) {
+                // 0b00 = down left
+                case 0: p = [(xx + 0.9) * CELL_SIZE, (yy + 0.9) * CELL_SIZE]; break;
+                // 0b01 = up left
+                case 1: p = [(xx + 0.1) * CELL_SIZE, (yy + 0.9) * CELL_SIZE]; break;
+                // 0b10 = down right
+                case 2: p = [(xx + 0.9) * CELL_SIZE, (yy + 0.1) * CELL_SIZE]; break;
+                // 0b11 = up right
+                case 3: p = [(xx + 0.1) * CELL_SIZE, (yy + 0.1) * CELL_SIZE]; break;
+            }
+            polygons.push(p);
+            //polygons.push([x * CELL_SIZE, y * CELL_SIZE]);
+            /*
+            const xx = Math.ceil(x);
+            const yy = Math.ceil(y);
+            polygons.push([['→', '↑', '←', '↓'][dir], xx, yy]);
+            */
+        }
+
+        do {
+            const [diffX, diffY, nextDir] = dir2cord[dir];
+            const nextX = x + diffX;
+            const nextY = y + diffY;
+            const nextRow = this.array[Math.ceil(nextY)] || [];
+            const nextCell = nextRow[Math.ceil(nextX)];
+            if (nextCell != '#') {
+                dir = (dir + 1) % 4;
+            } else {
+                if (lastDir != dir) {
+                    lastDir = dir;
+                    pushPolygon();
+                }
+                dir = nextDir;
+                x = nextX;
+                y = nextY;
+            }
+        } while(x != firstX || y != firstY || dir != 0);
+
+        return polygons;
     }
 }
 
@@ -126,7 +188,7 @@ function choice(items) {
 
 class Board {
     constructor() {
-        this.width = 10;
+        this.width = 20;
         this.height = 20;
         this.board = Array(this.height).fill('.').map(row => Array(this.width).fill('.'));
         this.lastRowIndex = this.board.length - 1;
@@ -135,17 +197,18 @@ class Board {
 
     fillLastRow() {
         const lastRow = this.board[this.lastRowIndex];
-        let index = lastRow.indexOf('.');
-        while (index > -1) {
+        const indexOf = (i) => lastRow.indexOf('.', i || 0);
+
+        for (let index = indexOf(); index > -1; index = indexOf(index)) {
             const puzzles = this.findAvailablePuzzles(index);
             const puzzle = choice(puzzles);
             if (puzzle === undefined) {
                 console.warn('not fit! index:', index, 'rowIndex:', this.lastRowIndex);
-                break;
+                index += 1;
+                continue;
             }
 
             this.putPuzzle(puzzle, this.lastRowIndex, index);
-            index = lastRow.indexOf('.', index);
         }
 
         this.lastRowIndex -= 1;
@@ -164,19 +227,21 @@ class Board {
     }
 
     putPuzzle(puzzle, rowIndex, cellIndex) {
+        const index = rowIndex * 11 + cellIndex * 3;
+        const alpha = String.fromCharCode(index % 12 + 65);
+
         this.history.push({
             puzzle: puzzle,
             row: rowIndex,
             col: cellIndex,
+            alpha: alpha,
         });
 
         const maxX = Math.min(cellIndex + 4, this.width) - cellIndex;
-        const index = rowIndex * 11 + cellIndex * 3;
-        const alfa = String.fromCharCode(index % 12 + 65);
         for(let x = 0; x < maxX; x++) {
             for(let y = 0; y < 4; y++) {
                 if (puzzle.array[y][x] != '.') {
-                    this.board[rowIndex - 3 + y][cellIndex + x] = alfa;
+                    this.board[rowIndex - 3 + y][cellIndex + x] = alpha;
                 }
             }
         }
@@ -198,9 +263,15 @@ class Board {
 
         );
     }
-
 }
 
+/*
 const b = new Board();
 for(let i=0; i < 10; i++) b.fillLastRow();
 b.toConsole();
+
+PUZZLES.forEach(p => {
+    console.log(p.array.join('\n'), p.cords.length, p.cords);
+    console.log();
+});
+*/
