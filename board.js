@@ -1,4 +1,4 @@
-const CELL_SIZE = 30;
+const CELL_SIZE = 15;
 class Puzzle {
     constructor(array, index, rotation) {
         this.array = array;
@@ -188,8 +188,8 @@ function choice(items) {
 
 class Board {
     constructor() {
-        this.width = 20;
-        this.height = 20;
+        this.width = 60;
+        this.height = 48;
         this.board = Array(this.height).fill('.').map(row => Array(this.width).fill('.'));
         this.lastRowIndex = this.board.length - 1;
         this.history = [];

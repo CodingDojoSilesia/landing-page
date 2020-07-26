@@ -24,7 +24,7 @@ function init () {
 
 function initText() {
     var el = getEl('text');
-    el.innerText = window.localStorage.text || '';
+    el.innerText = window.localStorage.text || 'Insert dream here';
     el.addEventListener('input', onText);
 }
 
@@ -35,13 +35,13 @@ function onText(ev) {
 }
 
 function makeAnimation() {
+    makeBoard();
     $svg.main = (
         d3.select('svg#animation')
-        .attr('width', $svg.width)
-        .attr('height', $svg.height)
+        .attr('width', $board.width * CELL_SIZE)
+        .attr('height', $board.height * CELL_SIZE)
     );
-
-    makeBoard();
+    startAnimation();
 }
 
 const COLORS = {
@@ -62,29 +62,92 @@ const COLORS = {
 
 function makeBoard() {
     $board = new Board();
-    for(let i=0; i < 15; i++) $board.fillLastRow();
-    showPuzzle(0);
+    while($board.lastRowIndex > 4) $board.fillLastRow();
 }
 
-function showPuzzle(i) {
-    const obj = $board.history[i];
+function startAnimation() {
+    const diff = $params.diff;
+    const time = getNowTimeInSeconds() - $params.start;
+    const doneRatio = Math.min(time / diff, 1.0);
+    showPuzzle(doneRatio);
+    computeAnimationSpeed();
+    setTimeout(puzzleAnimation, 1000);
+}
+
+function computeAnimationSpeed() {
+    const totalSteps = $board.history.reduce((acc, obj) => acc + obj.row * 2, 0);
+    const time = ($params.end - getNowTimeInSeconds()) * 1000;
+    $timeStep = totalSteps > 0 ? Math.max(time, 0) / totalSteps : 0;
+};
+
+function puzzleAnimation() {
+    const obj = $board.history.shift();
     if (!obj) return;
 
-    const { puzzle, row, col, alpha } = obj;
-    const gEl = $svg.main.append('g')
-        .attr(
-            'transform',
-            `translate(${col * CELL_SIZE}, ${row * CELL_SIZE})`);
+    const { row, col } = obj;
+    const x = Math.round($board.width / 2);
+    const y = 0;
+    const pObj = {
+        el: drawPuzzle(obj, x, y),
+        x, y,
+        row, col,
+    }
 
-    const cords = puzzle.cords.map(o => o.join(',')).join(' ');
-    gEl.append('polygon')
-        .attr('points', cords)
-        .attr('style', `fill:${COLORS[alpha]}`);
-
-    setTimeout(showPuzzle, 100, i + 1);
+    setTimeout(movePuzzle, $timeStep, pObj);
 }
 
-function parseQs () {
+function movePuzzle(pObj) {
+    const { y, col, row, el} = pObj;
+    let x = pObj.x;
+    pObj.y += 0.5;
+    if (x > col) {
+        pObj.x -= 1;
+    } else if (x < col) {
+        pObj.x += 1;
+    }
+
+    const ceilY = Math.ceil(y);
+    if (ceilY != row)  {
+        setTimeout(movePuzzle, $timeStep, pObj);
+    } else {
+        puzzleAnimation();
+        x = col;
+    }
+
+    translatePuzzle(el, x, ceilY);
+}
+
+function showPuzzle(doneRatio) {
+    const alreadyInAreaPuzzlesCount = Math.ceil(doneRatio * $board.history.length);
+
+    for(let i = 0; i < alreadyInAreaPuzzlesCount; i++) {
+        const obj = $board.history[i];
+        const { row, col } = obj;
+        const gEl = drawPuzzle(obj, row, col);
+        translatePuzzle(gEl, col, row);
+    }
+
+    $board.history = $board.history.slice(alreadyInAreaPuzzlesCount);
+}
+
+function drawPuzzle({ puzzle, alpha }, x, y) {
+    const cords = puzzle.cords.map(o => o.join(',')).join(' ');
+    const style = `fill:${COLORS[alpha]}`;
+    const gEl = $svg.main.append('g');
+    gEl.append('polygon')
+        .attr('points', cords)
+        .attr('style', style);
+    translatePuzzle(gEl, x, y);
+    return gEl;
+}
+
+function translatePuzzle(gEl, x, y) {
+    const realX = x * CELL_SIZE;
+    const realY = (y - 2.9) * CELL_SIZE;
+    gEl.attr('transform', `translate(${realX}, ${realY})`);
+}
+
+function parseQs() {
     var search = window.location.search.substr(1);
     var items = search.split('&');
     items.forEach((item) => {
