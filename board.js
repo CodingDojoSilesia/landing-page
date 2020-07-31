@@ -1,4 +1,3 @@
-const CELL_SIZE = 15;
 class Puzzle {
     constructor(array, index, rotation) {
         this.array = array;
@@ -6,7 +5,6 @@ class Puzzle {
         this.rotation = rotation;
         this.crop();
         this.floorSpace = this.array[3].indexOf('#');
-        this.cords = this.generateCords();
     }
 
     crop() {
@@ -45,7 +43,7 @@ class Puzzle {
         return this.array.every((col, index) => col == otherPuzzle.array[index]);
     }
 
-    generateCords() {
+    generateCords(cellSize, borderSize) {
         const firstY = 3;
         const firstX = this.array[firstY].indexOf('#');
 
@@ -64,18 +62,20 @@ class Puzzle {
             const xx = Math.ceil(x);
             const yy = Math.ceil(y);
             const d = (xx - x > 0.1) | ((yy - y > 0.1) << 1);
+            const a = borderSize;
+            const b = 1 - a;
             switch(d) {
                 // 0b00 = down left
-                case 0: p = [(xx + 0.9) * CELL_SIZE, (yy + 0.9) * CELL_SIZE]; break;
+                case 0: p = [(xx + a) * cellSize, (yy + a) * cellSize]; break;
                 // 0b01 = up left
-                case 1: p = [(xx + 0.1) * CELL_SIZE, (yy + 0.9) * CELL_SIZE]; break;
-                // 0b10 = down right
-                case 2: p = [(xx + 0.9) * CELL_SIZE, (yy + 0.1) * CELL_SIZE]; break;
-                // 0b11 = up right
-                case 3: p = [(xx + 0.1) * CELL_SIZE, (yy + 0.1) * CELL_SIZE]; break;
+                case 1: p = [(xx + b) * cellSize, (yy + a) * cellSize]; break;
+                // b0 = down right
+                case 2: p = [(xx + a) * cellSize, (yy + b) * cellSize]; break;
+                // b1 = up right
+                case 3: p = [(xx + b) * cellSize, (yy + b) * cellSize]; break;
             }
             polygons.push(p);
-            //polygons.push([x * CELL_SIZE, y * CELL_SIZE]);
+            //polygons.push([x * cellSize, y * cellSize]);
             /*
             const xx = Math.ceil(x);
             const yy = Math.ceil(y);
@@ -104,6 +104,10 @@ class Puzzle {
 
         return polygons;
     }
+}
+
+function generatePuzzleCords(cellSize, borderSize) {
+    PUZZLES.forEach(p => { p.cords = p.generateCords(cellSize, borderSize); });
 }
 
 function makePuzzles(array, index) {
@@ -187,9 +191,9 @@ function choice(items) {
 }
 
 class Board {
-    constructor() {
-        this.width = 60;
-        this.height = 48;
+    constructor(width, height) {
+        this.width = width || 60;
+        this.height = height || 48;
         this.board = Array(this.height).fill('.').map(row => Array(this.width).fill('.'));
         this.lastRowIndex = this.board.length - 1;
         this.history = [];

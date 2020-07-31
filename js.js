@@ -1,14 +1,17 @@
 var $params = {};
-var $svg = {width: 800, height: 100, pacmanMouthSpeed: 1, dotsCount: 10};
-var $red = '#D82C31';
-var $black = '#333';
+var $svg = {pacmanMouthSpeed: 1, dotsCount: 10};
 var $board = null;
+var $cellSize = 15;
+var $borderSize = 0.96;
+var $img = null;
 
 function init () {
     parseQs();
     $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds(); // default = now
     $params.time = (parseFloat($params.time || '') || 1) * 3600; // default = 1 hour
     $params.end = parseTimeInSeconds($params.end || '') || ($params.start + $params.time);
+    $params.img = 'http://tetris.firemark.pl/wtf.png'
+    $cellSize = $params.size ? parseInt($params.size) : $cellSize;
 
     if ($params.start > $params.end) {
         var dd = $params.start;
@@ -17,9 +20,24 @@ function init () {
     }
     $params.diff = $params.end - $params.start;
 
-    initText();
-    makeAnimation();
-    showTime();
+    addHiddenImage(() => {
+        initText();
+        makeAnimation();
+        showTime();
+    });
+}
+
+function addHiddenImage(callback) {
+    var img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.addEventListener('load', () => {
+        $img = document.createElement('canvas');
+        $img.width = img.width;
+        $img.height = img.height;
+        $img.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+        callback();
+    }, false);
+    img.src = $params.img;
 }
 
 function initText() {
@@ -35,33 +53,21 @@ function onText(ev) {
 }
 
 function makeAnimation() {
+    generatePuzzleCords($cellSize, $borderSize);
     makeBoard();
     $svg.main = (
         d3.select('svg#animation')
-        .attr('width', $board.width * CELL_SIZE)
-        .attr('height', $board.height * CELL_SIZE)
+        .attr('width', $board.width * $cellSize)
+        .attr('height', $board.height * $cellSize)
     );
     startAnimation();
 }
 
-const COLORS = {
-    'A': '#D72A32',
-    'B': '#ffd81b',
-    'C': '#0e00e0',
-    'D': '#793801',
-    'E': '#5a5a5a',
-    'F': '#7d3a3a',
-    'G': '#a400af',
-    'H': '#ff7373',
-    'I': '#0076af',
-    'J': '#d20000',
-    'K': '#00d2b5',
-    'L': '#500b0b',
-};
-
 
 function makeBoard() {
-    $board = new Board();
+    const width = Math.floor(window.screen.width / $cellSize * 0.5);
+    const height = Math.floor(window.screen.height / $cellSize * 0.9);
+    $board = new Board(width, height);
     while($board.lastRowIndex > 4) $board.fillLastRow();
 }
 
@@ -85,7 +91,7 @@ function puzzleAnimation() {
     if (!obj) return;
 
     const { row, col } = obj;
-    const x = Math.round($board.width / 2);
+    const x = Math.floor(Math.random() * $board.width);
     const y = 0;
     const pObj = {
         el: drawPuzzle(obj, x, y),
@@ -130,9 +136,13 @@ function showPuzzle(doneRatio) {
     $board.history = $board.history.slice(alreadyInAreaPuzzlesCount);
 }
 
-function drawPuzzle({ puzzle, alpha }, x, y) {
+function drawPuzzle({ puzzle, alpha, row, col }, x, y) {
     const cords = puzzle.cords.map(o => o.join(',')).join(' ');
-    const style = `fill:${COLORS[alpha]}`;
+    const s = Math.min($img.width, $img.height);
+    const imgX = Math.floor(col / $board.width * s);
+    const imgY = Math.floor(row / $board.height * s);
+    const color = $img.getContext('2d').getImageData(imgX, imgY, 1, 1).data;
+    const style = `fill:rgb(${color[0]},${color[1]},${color[2]})`;
     const gEl = $svg.main.append('g');
     gEl.append('polygon')
         .attr('points', cords)
@@ -142,8 +152,8 @@ function drawPuzzle({ puzzle, alpha }, x, y) {
 }
 
 function translatePuzzle(gEl, x, y) {
-    const realX = x * CELL_SIZE;
-    const realY = (y - 2.9) * CELL_SIZE;
+    const realX = x * $cellSize;
+    const realY = (y - 3) * $cellSize;
     gEl.attr('transform', `translate(${realX}, ${realY})`);
 }
 
