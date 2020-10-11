@@ -10,7 +10,7 @@ function init () {
     $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds(); // default = now
     $params.time = (parseFloat($params.time || '') || 1) * 3600; // default = 1 hour
     $params.end = parseTimeInSeconds($params.end || '') || ($params.start + $params.time);
-    $params.img = 'http://tetris.firemark.pl/wtf.png'
+    $params.cfg = $params.cfg ? $params.cfg.replace(/[^a-zA-Z0-9_]/, '') : 'logo';
     $cellSize = $params.size ? parseInt($params.size) : $cellSize;
 
     if ($params.start > $params.end) {
@@ -20,24 +20,33 @@ function init () {
     }
     $params.diff = $params.end - $params.start;
 
-    addHiddenImage(() => {
-        initText();
-        makeAnimation();
-        showTime();
-    });
+    addJSONP();
 }
 
-function addHiddenImage(callback) {
+function run(imgBase) {
+    console.log("TETRIS START!");
+    initImg(imgBase);
+    initText();
+    makeAnimation();
+    showTime();
+}
+
+function addJSONP() {
+    var script = document.createElement('script');
+    script.src = `./cfg/run_${$params.cfg}.js`
+    document.body.appendChild(script);
+}
+
+function initImg(imgBase) {
     var img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.addEventListener('load', () => {
+    img.onload = () => {
         $img = document.createElement('canvas');
         $img.width = img.width;
         $img.height = img.height;
         $img.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
-        callback();
-    }, false);
-    img.src = $params.img;
+    }
+    img.src = imgBase;
+
 }
 
 function initText() {
