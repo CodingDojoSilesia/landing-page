@@ -29,6 +29,7 @@ class Puzzle {
                 }
             }
         }
+        // TODO - support puzzles which dont have floor on first
         for(let x = 0; x < this.floorSpace; x++) {
             const puzzleCell = puzzle[3][x];
             const areaCell = area[3][x];
@@ -201,21 +202,72 @@ class Board {
 
     fillLastRow() {
         const lastRow = this.board[this.lastRowIndex];
-        const indexOf = (i) => lastRow.indexOf('.', i || 0);
+        const indexOf = (i) => lastRow.indexOf('.', i);
+        const spans = this.findSpans();
 
-        for (let index = indexOf(); index > -1; index = indexOf(index)) {
-            const puzzles = this.findAvailablePuzzles(index);
-            const puzzle = choice(puzzles);
-            if (puzzle === undefined) {
-                console.warn('not fit! index:', index, 'rowIndex:', this.lastRowIndex);
-                index += 1;
-                continue;
+        spans.sort((a, b) => {
+            let aa = a.size;
+            let bb = b.size;
+            if (aa > bb) return -1;
+            if (aa < bb) return +1;
+            return 0;
+        });
+
+        spans.forEach(({start, end}) => {
+            for (let index = start; index > -1 && index < end; index = indexOf(index)) {
+                const puzzles = this.findAvailablePuzzles(index);
+                const puzzle = choice(puzzles);
+                if (puzzle === undefined) {
+                    console.warn('not fit! index:', index, 'rowIndex:', this.lastRowIndex);
+                    index += 1;
+                    continue;
+                }
+                this.putPuzzle(puzzle, this.lastRowIndex, index);
             }
-
-            this.putPuzzle(puzzle, this.lastRowIndex, index);
-        }
+        });
 
         this.lastRowIndex -= 1;
+    }
+
+    findSpans() {
+        const spans = [];
+        let state = 'EMPTY';
+        let prevIndex = 0;
+        let index = 0;
+
+        const lastRow = this.board[this.lastRowIndex];
+        const findEmpty = () => lastRow.indexOf('.', index + 1);
+        const findFilled = () => {
+            const i = lastRow.slice(index + 1).findIndex(x => x !== '.');
+            return i === -1 ? -1 : i + index + 1;
+        }
+        const push = () => {
+            const realIndex = index > -1 ? index : lastRow.length;
+            const size = realIndex - prevIndex;
+            spans.push({
+                start: prevIndex,
+                end: realIndex,
+                size,
+            });
+        };
+
+        while (index > -1) {
+            prevIndex = index;
+            if (state === 'EMPTY') {
+                index = findFilled();
+                push();
+                state = 'FILL';
+            } else {
+                index = findEmpty();
+                state = 'EMPTY';
+            }
+        }
+
+        if (state === 'EMPTY') {
+            push();
+        }
+
+        return spans;
     }
 
     findAvailablePuzzles(cellIndex=0) {
