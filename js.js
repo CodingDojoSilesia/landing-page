@@ -25,10 +25,11 @@ function init () {
 
 function run(imgBase) {
     console.log("TETRIS START!");
-    initImg(imgBase);
-    initText();
-    makeAnimation();
-    showTime();
+    initImg(imgBase, () => {
+        initText();
+        makeAnimation();
+        showTime();
+    });
 }
 
 function addJSONP() {
@@ -37,13 +38,14 @@ function addJSONP() {
     document.body.appendChild(script);
 }
 
-function initImg(imgBase) {
+function initImg(imgBase, cb) {
     var img = new Image();
     img.onload = () => {
         $img = document.createElement('canvas');
         $img.width = img.width;
         $img.height = img.height;
         $img.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+        cb();
     }
     img.src = imgBase;
 

@@ -280,7 +280,7 @@ class Board {
         const minX = Math.min(cellIndex - 4, 0);
         for(let x = minX; x < maxX; x++) {
             for(let y = 0; y < 4; y++) {
-                area[y][x + 2] = this.board[rowIndex + y][cellIndex + x];
+                area[y][x + 4] = this.board[rowIndex + y][cellIndex + x];
             }
         }
         return PUZZLES.filter(puzzle => puzzle.isMatching(area));
