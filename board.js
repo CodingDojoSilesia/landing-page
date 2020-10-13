@@ -5,6 +5,8 @@ class Puzzle {
         this.rotation = rotation;
         this.crop();
         this.floorSpace = this.array[3].indexOf('#');
+        //this.height = 3 - this.array.lastIndexOf('....');
+        //this.width = Math.max.apply(null, this.array.map(col => col.lastIndexOf('#') + 1));
     }
 
     crop() {
@@ -23,20 +25,24 @@ class Puzzle {
         for(let y = 0; y < 4; y++) {
             for(let x = 0; x < 4; x++) {
                 const puzzleCell = puzzle[y][x];
-                const areaCell = area[y][x];
+                const areaCell = area[y][x - this.floorSpace + 4];
                 if(areaCell != '.' && puzzleCell != '.') {
                     return false;
                 }
             }
         }
-        // TODO - support puzzles which dont have floor on first
-        for(let x = 0; x < this.floorSpace; x++) {
-            const puzzleCell = puzzle[3][x];
-            const areaCell = area[3][x];
-            if(areaCell == '.' && puzzleCell == '.') {
-                return false;
+
+        /*
+        for(let y = 0; y < 4 - this.height; y++) {
+            for(let x = 0; x < this.width; x++) {
+                const puzzleCell = puzzle[3][x];
+                const areaCell = area[3][ - this.floorSpace + 4];
+                if(areaCell == '.' && puzzleCell == '.') {
+                    return false;
+                }
             }
         }
+        */
         return true;
     }
 
@@ -135,7 +141,7 @@ function rotate90(array) {
     const newArray = Array(4).fill('.').map(f => Array(4).fill('.'));
     for(let y = 0; y < 4; y++) {
         for(let x = 0; x < 4; x++) {
-            newArray[y][x] = array[x][y];
+            newArray[y][x] = array[4 - x - 1][y];
         }
     }
     return newArray.map(f => f.join(''));
@@ -186,10 +192,6 @@ const PUZZLES = [
     ],
 ].map(makePuzzles).flat();
 
-function choice(items) {
-    const index = Math.floor(Math.random() * items.length);
-    return items[index];
-}
 
 class Board {
     constructor(width, height) {
@@ -198,6 +200,7 @@ class Board {
         this.board = Array(this.height).fill('.').map(row => Array(this.width).fill('.'));
         this.lastRowIndex = this.board.length - 1;
         this.history = [];
+        this.counter = Array(PUZZLES.length).fill(0);
     }
 
     fillLastRow() {
@@ -216,8 +219,8 @@ class Board {
         spans.forEach(({start, end}) => {
             for (let index = start; index > -1 && index < end; index = indexOf(index)) {
                 const puzzles = this.findAvailablePuzzles(index);
-                const puzzle = choice(puzzles);
-                if (puzzle === undefined) {
+                const puzzle = this.choice(puzzles);
+                if (!puzzle) {
                     console.warn('not fit! index:', index, 'rowIndex:', this.lastRowIndex);
                     index += 1;
                     continue;
@@ -271,25 +274,33 @@ class Board {
     }
 
     findAvailablePuzzles(cellIndex=0) {
-        const area = Array(4).fill('.').map(row => Array(4).fill('#'));
+        const area = Array(4).fill('.').map(row => Array(8).fill('#'));
         const rowIndex = this.lastRowIndex - 3;
         const maxX = Math.min(cellIndex + 4, this.width) - cellIndex;
-        for(let x = 0; x < maxX; x++) {
+        const minX = Math.min(cellIndex - 4, 0);
+        for(let x = minX; x < maxX; x++) {
             for(let y = 0; y < 4; y++) {
-                area[y][x] = this.board[rowIndex + y][cellIndex + x];
+                area[y][x + 2] = this.board[rowIndex + y][cellIndex + x];
             }
         }
         return PUZZLES.filter(puzzle => puzzle.isMatching(area));
     }
 
+    choice(puzzles) {
+        if (puzzles.length == 0) return null;
+        const index = Math.floor(Math.random() * puzzles.length);
+        return puzzles[index];
+    }
+
     putPuzzle(puzzle, rowIndex, cellIndex) {
         const index = rowIndex * 11 + cellIndex * 3;
         const alpha = String.fromCharCode(index % 12 + 65);
+        const col = cellIndex - puzzle.floorSpace;
 
         this.history.push({
             puzzle: puzzle,
             row: rowIndex,
-            col: cellIndex,
+            col: col,
             alpha: alpha,
         });
 
@@ -297,7 +308,7 @@ class Board {
         for(let x = 0; x < maxX; x++) {
             for(let y = 0; y < 4; y++) {
                 if (puzzle.array[y][x] != '.') {
-                    this.board[rowIndex - 3 + y][cellIndex + x] = alpha;
+                    this.board[rowIndex - 3 + y][col + x] = alpha;
                 }
             }
         }
