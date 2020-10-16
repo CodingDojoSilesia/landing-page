@@ -5,8 +5,17 @@ class Puzzle {
         this.rotation = rotation;
         this.crop();
         this.floorSpace = this.array[3].indexOf('#');
-        //this.height = 3 - this.array.lastIndexOf('....');
-        //this.width = Math.max.apply(null, this.array.map(col => col.lastIndexOf('#') + 1));
+        this.width = Math.max.apply(null, this.array.map(col => col.lastIndexOf('#') + 1));
+        this.heightPerCol = new Array(4).fill(0);
+
+        for (let x=0; x < 4; x++) {
+            let height = 4;
+            for (let y=0; y < 4; y++) {
+                if (this.array[y][x] != '.') break;
+                height -= 1;
+            }
+            this.heightPerCol[x] = height;
+        }
     }
 
     crop() {
@@ -22,27 +31,29 @@ class Puzzle {
 
     isMatching(area) {
         const puzzle = this.array;
+        const getCells = (x, y) => [
+            puzzle[y][x],
+            area[y][x - this.floorSpace + 4],
+        ]
         for(let y = 0; y < 4; y++) {
             for(let x = 0; x < 4; x++) {
-                const puzzleCell = puzzle[y][x];
-                const areaCell = area[y][x - this.floorSpace + 4];
+                const [puzzleCell, areaCell] = getCells(x, y);
                 if(areaCell != '.' && puzzleCell != '.') {
                     return false;
                 }
             }
         }
 
-        /*
-        for(let y = 0; y < 4 - this.height; y++) {
-            for(let x = 0; x < this.width; x++) {
-                const puzzleCell = puzzle[3][x];
-                const areaCell = area[3][ - this.floorSpace + 4];
+        for(let x = 0; x < this.width; x++) {
+            let height = this.heightPerCol[x];
+            for(let y = 3; y >= 4 - height; y--) {
+                const [puzzleCell, areaCell] = getCells(x, y);
                 if(areaCell == '.' && puzzleCell == '.') {
                     return false;
                 }
             }
         }
-        */
+
         return true;
     }
 
