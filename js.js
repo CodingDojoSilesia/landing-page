@@ -1,5 +1,12 @@
 var $params = {};
-var $svg = {pacmanMouthSpeed: 1, dotsCount: 10};
+var $rawParams = {
+    start: '',
+    end: '',
+    time: '1',
+    size: 15,
+    cfg: 'logo',
+};
+var $svg = {};
 var $board = null;
 var $cellSize = 15;
 var $borderSize = 0.96;
@@ -7,11 +14,11 @@ var $img = null;
 
 function init () {
     parseQs();
-    $params.start = parseTimeInSeconds($params.start || '') || getNowTimeInSeconds(); // default = now
-    $params.time = (parseFloat($params.time || '') || 1) * 3600; // default = 1 hour
-    $params.end = parseTimeInSeconds($params.end || '') || ($params.start + $params.time);
-    $params.cfg = $params.cfg ? $params.cfg.replace(/[^a-zA-Z0-9_]/, '') : 'logo';
-    $cellSize = $params.size ? parseInt($params.size) : $cellSize;
+    $params.start = parseTimeInSeconds($rawParams.start) || getNowTimeInSeconds();
+    $params.time = (parseFloat($rawParams.time)) * 3600;
+    $params.end = parseTimeInSeconds($rawParams.end) || ($params.start + $params.time);
+    $params.cfg = $rawParams.cfg.replace(/[^a-zA-Z0-9_]/, '');
+    $cellSize = parseInt($rawParams.size);
 
     if ($params.start > $params.end) {
         var dd = $params.start;
@@ -21,6 +28,39 @@ function init () {
     $params.diff = $params.end - $params.start;
 
     addJSONP();
+    runGUI();
+}
+
+function runGUI() {
+    const gui = new dat.GUI();
+
+    const ctrl = {
+        submit() {
+            const oldUrl = window.location.href;
+            const splits = oldUrl.split('?');
+            const urlWithoutParams = splits[0];
+            let url = splits[0];
+            Object
+                .entries($rawParams)
+                .forEach(([key, value], i) => {
+                    const op = i == 0 ? '?' : '&';
+                    url += `${op}${key}=${encodeURI(value)}`;
+                });
+            window.location.href = url;
+        },
+
+        hide() {
+            gui.hide();
+        }
+    }
+
+    gui.add($rawParams, 'start');
+    gui.add($rawParams, 'end');
+    gui.add($rawParams, 'time');
+    gui.add($rawParams, 'size');
+    gui.add($rawParams, 'cfg');
+    gui.add(ctrl, 'submit');
+    gui.add(ctrl, 'hide');
 }
 
 function run(imgBase) {
@@ -173,7 +213,8 @@ function parseQs() {
     var items = search.split('&');
     items.forEach((item) => {
         [item, value] = item.split('=', 2);
-        $params[item] = value;
+        if (!value) return;
+        $rawParams[item] = value;
     });
 }
 
