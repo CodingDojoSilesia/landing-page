@@ -125,10 +125,10 @@ function makeBoard() {
 function startAnimation() {
     const diff = $params.diff;
     const time = getNowTimeInSeconds() - $params.start;
-    const doneRatio = Math.min(time / diff, 1.0);
+    const doneRatio = Math.max(Math.min(time / diff, 1.0), 0.0);
     showPuzzle(doneRatio);
     computeAnimationSpeed();
-    setTimeout(puzzleAnimation, 1000);
+    setTimeout(puzzleAnimation, Math.max(-time, 0) * 1000);
 }
 
 function computeAnimationSpeed() {
