@@ -106,20 +106,22 @@ function onText(ev) {
 function makeAnimation() {
     generatePuzzleCords($cellSize, $borderSize);
     makeBoard();
+    const height = window.innerHeight;
+    $svg.heightSpan = height - $board.height * $cellSize;
     $svg.main = (
         d3.select('svg#animation')
         .attr('width', $board.width * $cellSize)
-        .attr('height', $board.height * $cellSize)
+        .attr('height', height)
     );
     startAnimation();
 }
 
 
 function makeBoard() {
-    const width = Math.floor(window.screen.width / $cellSize * 0.5);
-    const height = Math.floor(window.screen.height / $cellSize * 0.9);
+    const width = Math.floor(window.innerWidth / $cellSize * 0.5);
+    const height = Math.floor(window.innerHeight / $cellSize);
     $board = new Board(width, height);
-    while($board.lastRowIndex > 4) $board.fillLastRow();
+    while($board.lastRowIndex > 2) $board.fillLastRow();
 }
 
 function startAnimation() {
@@ -210,8 +212,10 @@ function drawPuzzle({ puzzle, alpha, row, col }, x, y) {
 
 function translatePuzzle(gEl, x, y) {
     const realX = x * $cellSize;
-    const realY = (y - 3) * $cellSize;
+    const height = $svg.main.height;
+    const realY = (y - 3) * $cellSize + $svg.heightSpan;
     gEl.attr('transform', `translate(${realX}, ${realY})`);
+
 }
 
 function parseQs() {
