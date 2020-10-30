@@ -11,14 +11,23 @@ var $board = null;
 var $cellSize = 15;
 var $borderSize = 0.96;
 var $img = null;
+var CFGS = {
+    'Dojo logo': 'logo',
+    'Python': 'py',
+    'Javascript': 'js',
+    'Rainbow 1': 'rainbow1',
+    'Rainbow 2': 'rainbow2',
+    'Gogh (Starry Night)': 'gogh',
+}
 
 function init () {
     parseQs();
+    $rawParams.size = parseInt($rawParams.size) || 15; // for Tweakpane
     $params.start = parseTimeInSeconds($rawParams.start) || getNowTimeInSeconds();
     $params.time = (parseFloat($rawParams.time)) * 3600;
     $params.end = parseTimeInSeconds($rawParams.end) || ($params.start + $params.time);
     $params.cfg = $rawParams.cfg.replace(/[^a-zA-Z0-9_]/, '');
-    $cellSize = parseInt($rawParams.size);
+    $cellSize = $rawParams.size;
 
     if ($params.start > $params.end) {
         var dd = $params.start;
@@ -32,35 +41,34 @@ function init () {
 }
 
 function runGUI() {
-    const gui = new dat.GUI();
-
-    const ctrl = {
-        submit() {
-            const oldUrl = window.location.href;
-            const splits = oldUrl.split('?');
-            const urlWithoutParams = splits[0];
-            let url = splits[0];
-            Object
-                .entries($rawParams)
-                .forEach(([key, value], i) => {
-                    const op = i == 0 ? '?' : '&';
-                    url += `${op}${key}=${encodeURI(value)}`;
-                });
-            window.location.href = url;
-        },
-
-        hide() {
-            gui.hide();
-        }
-    }
-
-    gui.add($rawParams, 'start');
-    gui.add($rawParams, 'end');
-    gui.add($rawParams, 'time');
-    gui.add($rawParams, 'size');
-    gui.add($rawParams, 'cfg');
-    gui.add(ctrl, 'submit');
-    gui.add(ctrl, 'hide');
+    const gui = new Tweakpane();
+    gui.addInput($rawParams, 'start', { label: 'Start [HH:MM]' });
+    gui.addInput($rawParams, 'end', { label: 'End [HH:MM]' });
+    gui.addInput($rawParams, 'time', { label: 'Duration [hours]'});
+    gui.addInput($rawParams, 'size', {
+        label: 'Cell size',
+        min: 10,
+        max: 40,
+        step: 1,
+    });
+    gui.addInput($rawParams, 'cfg', { label: 'Config', options: CFGS });
+    gui.addSeparator();
+    gui.addButton({ title: 'Submit' }).on('click', () => {
+        const oldUrl = window.location.href;
+        const splits = oldUrl.split('?');
+        const urlWithoutParams = splits[0];
+        let url = splits[0];
+        Object
+            .entries($rawParams)
+            .forEach(([key, value], i) => {
+                const op = i == 0 ? '?' : '&';
+                url += `${op}${key}=${encodeURI(value)}`;
+            });
+        window.location.href = url;
+    });
+    gui.addButton({ title: 'Hide' }).on('click', () => {
+        gui.hidden = true;
+    });
 }
 
 function run(imgBase) {
