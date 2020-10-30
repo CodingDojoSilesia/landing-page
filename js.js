@@ -142,7 +142,13 @@ function puzzleAnimation() {
     if (!obj) return;
 
     const { row, col } = obj;
-    const x = Math.floor(Math.random() * $board.width);
+    const x = Math.max(
+        Math.min(
+            col + Math.round(row * (Math.random() - 0.5)),
+            $board.width - 1,
+        ),
+        0,
+    );
     const y = 0;
     const pObj = {
         el: drawPuzzle(obj, x, y),
