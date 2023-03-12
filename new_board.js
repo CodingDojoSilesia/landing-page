@@ -1,3 +1,7 @@
+// WARNING - print functions are very ugly!
+// Import below is required to run each animation.
+// const { execSync } = require("child_process");
+
 class Board {
     constructor(width, height) {
         this.width = width || 10;
@@ -21,26 +25,60 @@ class Board {
         const row = this.board[this.rowIndex];
         const gaps = [];
         let pointer = 0;
+
+        let print = (label, start, end) => {
+            return; // break to free the animation!
+            console.clear();
+            this.toColorConsole();
+            const sp = start * 2;
+            const ep = end * 2;
+            const wp = (ep - sp);
+            console.log("".padStart(wp, "↑").padStart(ep, " "));
+            console.log(`${label}=${end - 1}`.padStart(ep, " "));
+            gaps.forEach(([start, end]) => {
+                console.log(`[${start}:${end}]`.padStart(ep, " "));
+            });
+            execSync("sleep 2");
+        }
+
         while(pointer < this.width) {
             // Find next empty cell
             const start = row.findIndex((c, i) => i >= pointer && c == ".");
             if (start == -1) { // not found
                 break;
             }
+            print("start", start, start + 1);
+
             // Find next non-empty cell
             const end = row.findIndex((c, i) => i >= start && c != ".");
             if (end == -1) { // not found
                 gaps.push([start, this.width - 1]);
+                print("end", start, this.width);
                 break;
             }
             gaps.push([start, end - 1]);
+            print("end", start, end);
             pointer = end;
         }
+
         return gaps;
     }
 
     fillGap([start, end]) {
         let pointer = start;
+
+        let print = () => {
+            return; // break to free the animation!
+            console.clear();
+            this.toColorConsole();
+            const p = (pointer + 1) * 2;
+            console.log("↑↑".padStart(p, " "));
+            console.log(`pointer=${pointer}`.padStart(p, " "));
+            execSync("sleep 0.25");
+        }
+
+        print();
+
         while(pointer <= end) {
             const coords = [pointer, this.rowIndex];
             const puzzle = this.pickRandomPuzzle(coords);
@@ -51,6 +89,7 @@ class Board {
             }
             this.putPuzzle(puzzle, coords);
             pointer += puzzle.lastRowWidth;
+            print();
         }
     }
 
@@ -68,6 +107,47 @@ class Board {
     }
 
     isPuzzleMatching(puzzle, [startX, startY]) {
+
+        let print = (puzzleX, puzzleY, state, wait) => {
+            return; // break to free the animation!
+            console.clear();
+            let s = '';
+            for(let y = -1 - startY + 3; y < this.height - 6; y++) {
+                const boardY = startY + y - 3;
+                const boardRow = this.board[boardY] || [];
+                for(let x = -1 - startX; x < this.width + 1 - startX; x++) {
+                    const boardX = startX + x - puzzle.lastRowStart;
+                    const boardCell = boardRow[boardX] || "!";
+                    const isInside = y >= 0 && x >= 0 && y < 4 && x < 4;
+                    const collision = isInside ? puzzle.array[y][x] == "#" : false;
+                    if (boardX == puzzleX && boardY == puzzleY) {
+                        if (state == "NO MATCH") {
+                            s += '\x1b[31m!!\x1b[0m';
+                        } else {
+                            s += '\x1b[34m??\x1b[0m';
+                        }
+                    } else {
+                        const d = boardCell.charCodeAt() - 48;
+                        let fg = 31;
+                        if (boardCell == "!") fg = 31;
+                        else if (boardCell == ".") fg = isInside ? 97 : 90;
+                        else if (collision) fg = 97;
+                        else fg = parseInt(d) + (d < 7 ? 31 : 91 - 7);
+                        const bg = d >= 0 && d <= 9 ? parseInt(d) + (d < 7 ? 41 : 101 - 7) : 49;
+                        const cell = collision ? "▒▒" : "..";
+                        s += `\x1b[${fg}m\x1b[${bg}m${cell}\x1b[0m`;
+                    }
+                }
+                s += '\n';
+            }
+
+            console.log(s, state);
+            execSync("sleep 0.05");
+            if (wait) {
+                execSync("sleep 2");
+            }
+        }
+
         // The main idea is to check board cell with puzzle cell.
         // So we have to check 4x4 area.
         for(let y = 0; y < 4; y++) {
@@ -86,11 +166,16 @@ class Board {
                 if (boardCell != "." && puzzleCell != ".") {
                     // Collision between board and puzzle,
                     // so puzzle can't fit in the board.
+                    print(boardX, boardY, "NO MATCH", true);
                     return false;
+                } else {
+                    print(boardX, boardY, "MATCHING", false);
                 }
             }
         }
+
         // All cells are matching to board.
+        print("?", "?", "MATCH", true);
         return true;
     }
 
@@ -132,7 +217,7 @@ class Board {
             this.board.map(
                 row => row
                     .join('')
-                    .replace(/\w/g, w => {
+                    .replace(/\d/g, w => {
                         const d = w.charCodeAt() - 48;
                         const fg = parseInt(d) + (d < 7 ? 31 : 91 - 7);
                         const bg = parseInt(d) + (d < 7 ? 41 : 101 - 7);
@@ -151,7 +236,7 @@ class Puzzle {
         const lastRow = array[3];
         this.lastRowStart = lastRow.indexOf("#");
         this.lastRowStop = lastRow.lastIndexOf("#");
-        this.lastRowWidth = this.lastRowStop - this.lastRowStart;
+        this.lastRowWidth = this.lastRowStop - this.lastRowStart + 1;
     }
 }
 
@@ -269,6 +354,6 @@ const PUZZLES = [
     ],
 ].map(makePuzzleWithRotating).flat();
 
-const b = new Board(10, 10);
+const b = new Board(60, 40);
 while(b.fillLastRow());
 b.toColorConsole();
