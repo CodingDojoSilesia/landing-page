@@ -6,9 +6,9 @@ class Board {
     constructor(width, height) {
         this.width = width || 10;
         this.height = height || 10;
-        this.board = Array(this.height)  // Create array of rows
+        this.board = Array(this.height)  // Create the array of rows
             .fill('.') // Fill anything to avoid undefined value
-            .map(row => Array(this.width).fill('.')); // each row is array of characters.
+            .map(row => Array(this.width).fill('.')); // Each row is an array of characters.
         this.rowIndex = this.height - 1;
         this.puzzleIndex = 0;
     }
@@ -17,7 +17,7 @@ class Board {
         const gaps = this.findGaps();
         gaps.forEach(gap => this.fillGap(gap));
         this.rowIndex -= 1;
-        // return if is possible to fill another rows
+        // Return if is possible to fill another rows
         return this.rowIndex > 0;
     }
 
@@ -174,14 +174,14 @@ class Board {
             }
         }
 
-        // All cells are matching to board.
+        // All cells are matching with board.
         print("?", "?", "MATCH", true);
         return true;
     }
 
     putPuzzle(puzzle, [startX, startY]) {
         // Assume a puzzle can be added to the board.
-        // Otherwise could "damage" the board.
+        // Otherwise it could "damage" the board.
         for(let y = 0; y < 4; y++) {
             for(let x = 0; x < 4; x++) {
                 const puzzleCell = puzzle.array[y][x];
@@ -207,7 +207,7 @@ class Board {
     }
 
     toConsole() {
-        console.log( // Convert array to string
+        console.log( // Convert the array to string
             this.board.map(row => row.join('')).join('\n')
         );
     }
@@ -255,7 +255,7 @@ function makePuzzleWithRotating(puzzle) {
 }
 
 function rotate90(array) {
-    // lets create an array of arrays
+    // Let's create an array of arrays.
     const newArray = Array(4).fill('.').map(() => ['.', '.', '.', '.']);
     for(let y=0; y < 4; y++) {
         for(let x=0; x < 4; x++) {
@@ -264,7 +264,7 @@ function rotate90(array) {
             row[y] = cell;
         }
     }
-    // return to array of strings
+    // Return to array of strings.
     return newArray.map(c => c.join(''));
 }
 
@@ -276,7 +276,7 @@ function shiftToBottomLeft(array) {
 
 function shiftToBottom(array) {
     const newArray = [...array];
-    // If last row is empty
+    // If the last row is empty
     // then drop him
     // and put on the top.
     while(newArray[3] == '....') {
@@ -288,8 +288,8 @@ function shiftToBottom(array) {
 
 function shiftToLeft(array) {
     let newArray = [...array];
-    // If first column is empty
-    // then for each row drop first cell
+    // If the first column is empty
+    // then for each row drop the first cell
     // and put empty cell on the end of row.
     while(newArray.every(col => col[0] == '.')) {
         newArray = newArray.map(col => col.substr(1) + '.');
